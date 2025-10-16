@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マス選択アプリ</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .grid-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(15, 40px);
+            grid-template-rows: repeat(3, 40px);
+            gap: 2px;
+            border: 2px solid #333;
+            padding: 5px;
+            background-color: #333;
+        }
+        
+        .cell {
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .cell:hover {
+            background-color: #e8f4f8;
+        }
+        
+        .cell.selected {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .cell.disabled {
+            background-color: #f0f0f0;
+            cursor: not-allowed;
+            color: #999;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .status {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .progress {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            width: 300px;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: background-color 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .download-btn {
+            background-color: #2196F3;
+        }
+        
+        .download-btn:hover {
+            background-color: #1976D2;
+        }
+        
+        .reset-btn {
+            background-color: #f44336;
+        }
+        
+        .reset-btn:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>マス選択アプリ</h1>
+        
+        <div class="status" id="status">
+            各列から1つずつマスを選択してください (0/15)
+        </div>
+        
+        <div class="progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div id="progressText">0%</div>
+        </div>
+        
+        <div class="grid-container">
+            <div class="grid" id="grid">
+                <!-- グリッドはJavaScriptで生成 -->
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="downloadBtn" disabled>CSVダウンロード</button>
+            <button id="resetBtn">リセット</button>
+        </div>
+    </div>
+
+    <script>
+        class GridSelector {
+            constructor() {
+                this.grid = document.getElementById('grid');
+                this.status = document.getElementById('status');
+                this.progressFill = document.getElementById('progressFill');
+                this.progressText = document.getElementById('progressText');
+                this.downloadBtn = document.getElementById('downloadBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                
+                this.rows = 3;
+                this.cols = 15;
+                this.selections = new Array(this.cols).fill(null); // 各列の選択状態
+                this.selectedCount = 0;
+                
+                this.initGrid();
+                this.bindEvents();
+            }
+            
+            initGrid() {
+                this.grid.innerHTML = '';
+                
+                for (let row = 0; row < this.rows; row++) {
+                    for (let col = 0; col < this.cols; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        cell.textContent = `${row + 1}-${col + 1}`;
+                        this.grid.appendChild(cell);
+                    }
+                }
+            }
+            
+            bindEvents() {
+                this.grid.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('cell')) {
+                        this.selectCell(e.target);
+                    }
+                });
+                
+                this.downloadBtn.addEventListener('click', () => {
+                    this.downloadCSV();
+                });
+                
+                this.resetBtn.addEventListener('click', () => {
+                    this.reset();
+                });
+            }
+            
+            selectCell(cell) {
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                
+                // 同じ列の他のマスを選択解除
+                if (this.selections[col] !== null) {
+                    const prevCell = this.grid.children[this.selections[col] * this.cols + col];
+                    prevCell.classList.remove('selected');
+                }
+                
+                // 新しいマスを選択
+                cell.classList.add('selected');
+                this.selections[col] = row;
+                
+                this.updateProgress();
+            }
+            
+            updateProgress() {
+                this.selectedCount = this.selections.filter(selection => selection !== null).length;
+                const percentage = (this.selectedCount / this.cols) * 100;
+                
+                this.status.textContent = `各列から1つずつマスを選択してください (${this.selectedCount}/${this.cols})`;
+                this.progressFill.style.width = `${percentage}%`;
+                this.progressText.textContent = `${Math.round(percentage)}%`;
+                
+                // 全選択完了時の処理
+                if (this.selectedCount === this.cols) {
+                    this.status.textContent = '全ての列で選択が完了しました！';
+                    this.downloadBtn.disabled = false;
+                } else {
+                    this.downloadBtn.disabled = true;
+                }
+            }
+            
+            downloadCSV() {
+                const csvData = [];
+                csvData.push('列,行,位置');
+                
+                for (let col = 0; col < this.cols; col++) {
+                    const row = this.selections[col];
+                    csvData.push(`${col + 1},${row + 1},${row + 1}-${col + 1}`);
+                }
+                
+                const csvContent = csvData.join('\n');
+                const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', '選択結果.csv');
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            
+            reset() {
+                this.selections = new Array(this.cols).fill(null);
+                this.selectedCount = 0;
+                
+                // 全てのマスの選択状態を解除
+                const cells = this.grid.querySelectorAll('.cell');
+                cells.forEach(cell => {
+                    cell.classList.remove('selected');
+                });
+                
+                this.updateProgress();
+            }
+        }
+        
+        // アプリケーション初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            new GridSelector();
+        });
+    </script>
+</body>
+</html>
