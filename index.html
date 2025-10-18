@@ -28,7 +28,7 @@
 
       .grid-container {
         display: flex;
-        justify-content: center;
+        flex-direction: column;
         align-items: center;
         margin-bottom: 30px;
         gap: 20px;
@@ -39,8 +39,6 @@
         font-weight: bold;
         font-size: 18px;
         color: #333;
-        text-orientation: mixed;
-        transform: rotate(90deg);
       }
 
       /* .start-label {
@@ -53,8 +51,8 @@
 
       .grid {
         display: grid;
-        grid-template-columns: repeat(15, 60px);
-        grid-template-rows: repeat(3, 40px);
+        grid-template-columns: repeat(3, 60px);
+        grid-template-rows: repeat(15, 40px);
         gap: 2px;
         border: 2px solid #333;
         padding: 5px;
@@ -216,7 +214,7 @@
       <h1>Trajectory Recorder</h1>
 
       <div class="status" id="status">
-        各列から1つずつマスを選択してください (0/15)
+        各行から1つずつマスを選択してください (0/15)
       </div>
 
       <div class="progress">
@@ -227,11 +225,11 @@
       </div>
 
       <div class="grid-container">
-        <div class="start-label">Start</div>
+        <div class="end-label">End</div>
         <div class="grid" id="grid">
           <!-- グリッドはJavaScriptで生成 -->
         </div>
-        <div class="end-label">End</div>
+        <div class="start-label">Start</div>
       </div>
 
       <div class="controls">
@@ -262,9 +260,9 @@
           this.resetBtn = document.getElementById("resetBtn");
           this.filenameInput = document.getElementById("filenameInput");
 
-          this.rows = 3;
-          this.cols = 15;
-          this.selections = new Array(this.cols).fill(null); // 各列の選択状態
+          this.rows = 15;
+          this.cols = 3;
+          this.selections = new Array(this.rows).fill(null); // 各行の選択状態
           this.selectedCount = 0;
 
           this.initGrid();
@@ -305,16 +303,16 @@
           const row = parseInt(cell.dataset.row);
           const col = parseInt(cell.dataset.col);
 
-          // 同じ列の他のマスを選択解除
-          if (this.selections[col] !== null) {
+          // 同じ行の他のマスを選択解除
+          if (this.selections[row] !== null) {
             const prevCell =
-              this.grid.children[this.selections[col] * this.cols + col];
+              this.grid.children[row * this.cols + this.selections[row]];
             prevCell.classList.remove("selected");
           }
 
           // 新しいマスを選択
           cell.classList.add("selected");
-          this.selections[col] = row;
+          this.selections[row] = col;
 
           this.updateProgress();
         }
@@ -323,15 +321,15 @@
           this.selectedCount = this.selections.filter(
             (selection) => selection !== null
           ).length;
-          const percentage = (this.selectedCount / this.cols) * 100;
+          const percentage = (this.selectedCount / this.rows) * 100;
 
-          this.status.textContent = `各列から1つずつマスを選択してください (${this.selectedCount}/${this.cols})`;
+          this.status.textContent = `各行から1つずつマスを選択してください (${this.selectedCount}/${this.rows})`;
           this.progressFill.style.width = `${percentage}%`;
           this.progressText.textContent = `${Math.round(percentage)}%`;
 
           // 全選択完了時の処理
-          if (this.selectedCount === this.cols) {
-            this.status.textContent = "全ての列で選択が完了しました！";
+          if (this.selectedCount === this.rows) {
+            this.status.textContent = "全ての行で選択が完了しました！";
             this.downloadBtn.disabled = false;
           } else {
             this.downloadBtn.disabled = true;
@@ -340,11 +338,16 @@
 
         downloadCSV() {
           const csvData = [];
-          csvData.push("列,行");
+          csvData.push("行,列");
 
-          for (let col = 0; col < this.cols; col++) {
-            const row = this.selections[col];
-            csvData.push(`${col + 1},${row - 1}`);
+          // 選択されたマスを順番に出力（行は下から上に数える）
+          for (let row = this.rows - 1; row >= 0; row--) {
+            const col = this.selections[row];
+            if (col !== null) {
+              // 行番号を下から上に数える（0→14, 1→13, ..., 14→0）
+              const displayRow = this.rows - 1 - row;
+              csvData.push(`${displayRow + 1},${col - 1}`);
+            }
           }
 
           const csvContent = csvData.join("\n");
@@ -364,6 +367,7 @@
           if (!filename.match(/-\d+$/)) {
             filename += "-1";
           }
+          this.filenameInput.value = filename;
 
           // 現在の日時を取得してファイル名に付加
           const now = new Date();
@@ -402,7 +406,7 @@
         }
 
         reset() {
-          this.selections = new Array(this.cols).fill(null);
+          this.selections = new Array(this.rows).fill(null);
           this.selectedCount = 0;
 
           // 全てのマスの選択状態を解除
