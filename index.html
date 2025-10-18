@@ -365,8 +365,17 @@
             filename += "-1";
           }
 
+          // 現在の日時を取得してファイル名に付加
+          const now = new Date();
+          const dateTime = now
+            .toISOString()
+            .replace(/[:.]/g, "-")
+            .slice(0, 19)
+            .replace("T", " ");
+          const finalFilename = `${dateTime} ${filename}.csv`;
+
           link.setAttribute("href", url);
-          link.setAttribute("download", filename + ".csv");
+          link.setAttribute("download", finalFilename);
           link.style.visibility = "hidden";
 
           document.body.appendChild(link);
