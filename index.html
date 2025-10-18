@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>マス選択アプリ</title>
+    <title>Trajectory Recorder</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -34,16 +34,39 @@
         
         .grid {
             display: grid;
-            grid-template-columns: repeat(15, 40px);
+            grid-template-columns: repeat(15, 60px);
             grid-template-rows: repeat(3, 40px);
             gap: 2px;
             border: 2px solid #333;
             padding: 5px;
             background-color: #333;
+            position: relative;
         }
         
+        /* .grid::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 313px;
+            width: 4px;
+            height: 100%;
+            background-color: #000;
+            z-index: 1;
+        }
+        
+        .grid::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 622px;
+            width: 4px;
+            height: 100%;
+            background-color: #000;
+            z-index: 1;
+        } */
+        
         .cell {
-            width: 40px;
+            width: 60px;
             height: 40px;
             background-color: white;
             border: 1px solid #ddd;
@@ -60,7 +83,7 @@
         }
         
         .cell.selected {
-            background-color: #4CAF50;
+            background-color: #888;
             color: white;
             font-weight: bold;
         }
@@ -74,6 +97,33 @@
         .controls {
             text-align: center;
             margin-bottom: 20px;
+        }
+        
+        .filename-section {
+            margin-bottom: 15px;
+        }
+        
+        .filename-section label {
+            display: inline-block;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .filename-section input {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 200px;
+        }
+        
+        .filename-section input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        .button-section {
+            margin-top: 10px;
         }
         
         .status {
@@ -144,7 +194,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>マス選択アプリ</h1>
+        <h1>Trajectory Recorder</h1>
         
         <div class="status" id="status">
             各列から1つずつマスを選択してください (0/15)
@@ -164,8 +214,14 @@
         </div>
         
         <div class="controls">
-            <button id="downloadBtn" disabled>CSVダウンロード</button>
-            <button id="resetBtn">リセット</button>
+            <div class="filename-section">
+                <label for="filenameInput">ファイル名:</label>
+                <input type="text" id="filenameInput" value="trajectory" placeholder="ファイル名を入力">
+            </div>
+            <div class="button-section">
+                <button id="downloadBtn" disabled>CSVダウンロード</button>
+                <button id="resetBtn">リセット</button>
+            </div>
         </div>
     </div>
 
@@ -178,6 +234,7 @@
                 this.progressText = document.getElementById('progressText');
                 this.downloadBtn = document.getElementById('downloadBtn');
                 this.resetBtn = document.getElementById('resetBtn');
+                this.filenameInput = document.getElementById('filenameInput');
                 
                 this.rows = 3;
                 this.cols = 15;
@@ -197,7 +254,6 @@
                         cell.className = 'cell';
                         cell.dataset.row = row;
                         cell.dataset.col = col;
-                        cell.textContent = `${row + 1}-${col + 1}`;
                         this.grid.appendChild(cell);
                     }
                 }
@@ -255,11 +311,11 @@
             
             downloadCSV() {
                 const csvData = [];
-                csvData.push('列,行,位置');
+                csvData.push('列,行');
                 
                 for (let col = 0; col < this.cols; col++) {
                     const row = this.selections[col];
-                    csvData.push(`${col + 1},${row + 1},${row + 1}-${col + 1}`);
+                    csvData.push(`${col + 1},${row - 1}`);
                 }
                 
                 const csvContent = csvData.join('\n');
@@ -267,13 +323,42 @@
                 const link = document.createElement('a');
                 const url = URL.createObjectURL(blob);
                 
+                // ファイル名の処理
+                let filename = this.filenameInput.value.trim();
+                if (!filename) {
+                    filename = 'trajectory';
+                }
+                
+                // -(数字)で終わっていない場合は-1を付加
+                if (!filename.match(/-\d+$/)) {
+                    filename += '-1';
+                }
+                
                 link.setAttribute('href', url);
-                link.setAttribute('download', '選択結果.csv');
+                link.setAttribute('download', filename + '.csv');
                 link.style.visibility = 'hidden';
                 
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+            }
+            
+            incrementFilename() {
+                let filename = this.filenameInput.value.trim();
+                if (!filename) {
+                    filename = 'trajectory';
+                }
+                
+                // -(数字)で終わっている場合は番号を増加
+                const match = filename.match(/^(.+)-(\d+)$/);
+                if (match) {
+                    const baseName = match[1];
+                    const number = parseInt(match[2]);
+                    this.filenameInput.value = `${baseName}-${number + 1}`;
+                } else {
+                    // -(数字)で終わっていない場合は-2を付加
+                    this.filenameInput.value = `${filename}-2`;
+                }
             }
             
             reset() {
@@ -287,6 +372,9 @@
                 });
                 
                 this.updateProgress();
+                
+                // リセット時にファイル名の番号を増加
+                this.incrementFilename();
             }
         }
         
