@@ -1,49 +1,68 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trajectory Recorder</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        
-        .container {
-            background-color: white;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-        }
-        
-        .grid-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(15, 60px);
-            grid-template-rows: repeat(3, 40px);
-            gap: 2px;
-            border: 2px solid #333;
-            padding: 5px;
-            background-color: #333;
-            position: relative;
-        }
-        
-        /* .grid::before {
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+
+      .container {
+        background-color: white;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 30px;
+      }
+
+      .grid-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 30px;
+        gap: 20px;
+      }
+
+      .start-label,
+      .end-label {
+        font-weight: bold;
+        font-size: 18px;
+        color: #333;
+        text-orientation: mixed;
+        transform: rotate(90deg);
+      }
+
+      /* .start-label {
+        color: #4caf50;
+      }
+
+      .end-label {
+        color: #f44336;
+      } */
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(15, 60px);
+        grid-template-rows: repeat(3, 40px);
+        gap: 2px;
+        border: 2px solid #333;
+        padding: 5px;
+        background-color: #333;
+        position: relative;
+      }
+
+      /* .grid::before {
             content: '';
             position: absolute;
             top: 0;
@@ -64,324 +83,336 @@
             background-color: #000;
             z-index: 1;
         } */
-        
-        .cell {
-            width: 60px;
-            height: 40px;
-            background-color: white;
-            border: 1px solid #ddd;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            transition: all 0.2s ease;
-        }
-        
-        .cell:hover {
-            background-color: #e8f4f8;
-        }
-        
-        .cell.selected {
-            background-color: #888;
-            color: white;
-            font-weight: bold;
-        }
-        
-        .cell.disabled {
-            background-color: #f0f0f0;
-            cursor: not-allowed;
-            color: #999;
-        }
-        
-        .controls {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .filename-section {
-            margin-bottom: 15px;
-        }
-        
-        .filename-section label {
-            display: inline-block;
-            margin-right: 10px;
-            font-weight: bold;
-        }
-        
-        .filename-section input {
-            padding: 8px 12px;
-            border: 2px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            width: 200px;
-        }
-        
-        .filename-section input:focus {
-            outline: none;
-            border-color: #4CAF50;
-        }
-        
-        .button-section {
-            margin-top: 10px;
-        }
-        
-        .status {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        
-        .progress {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .progress-bar {
-            width: 300px;
-            height: 20px;
-            background-color: #e0e0e0;
-            border-radius: 10px;
-            margin: 0 auto;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background-color: #4CAF50;
-            transition: width 0.3s ease;
-            width: 0%;
-        }
-        
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 0 10px;
-            transition: background-color 0.3s ease;
-        }
-        
-        button:hover {
-            background-color: #45a049;
-        }
-        
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        
-        .download-btn {
-            background-color: #2196F3;
-        }
-        
-        .download-btn:hover {
-            background-color: #1976D2;
-        }
-        
-        .reset-btn {
-            background-color: #f44336;
-        }
-        
-        .reset-btn:hover {
-            background-color: #d32f2f;
-        }
+
+      .cell {
+        width: 60px;
+        height: 40px;
+        background-color: white;
+        border: 1px solid #ddd;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        transition: all 0.2s ease;
+      }
+
+      .cell:hover {
+        background-color: #e8f4f8;
+      }
+
+      .cell.selected {
+        background-color: #888;
+        color: white;
+        font-weight: bold;
+      }
+
+      .cell.disabled {
+        background-color: #f0f0f0;
+        cursor: not-allowed;
+        color: #999;
+      }
+
+      .controls {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .filename-section {
+        margin-bottom: 15px;
+      }
+
+      .filename-section label {
+        display: inline-block;
+        margin-right: 10px;
+        font-weight: bold;
+      }
+
+      .filename-section input {
+        padding: 8px 12px;
+        border: 2px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        width: 200px;
+      }
+
+      .filename-section input:focus {
+        outline: none;
+        border-color: #4caf50;
+      }
+
+      .button-section {
+        margin-top: 10px;
+      }
+
+      .status {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      .progress {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .progress-bar {
+        width: 300px;
+        height: 20px;
+        background-color: #e0e0e0;
+        border-radius: 10px;
+        margin: 0 auto;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background-color: #4caf50;
+        transition: width 0.3s ease;
+        width: 0%;
+      }
+
+      button {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 0 10px;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+
+      .download-btn {
+        background-color: #2196f3;
+      }
+
+      .download-btn:hover {
+        background-color: #1976d2;
+      }
+
+      .reset-btn {
+        background-color: #f44336;
+      }
+
+      .reset-btn:hover {
+        background-color: #d32f2f;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h1>Trajectory Recorder</h1>
-        
-        <div class="status" id="status">
-            各列から1つずつマスを選択してください (0/15)
+      <h1>Trajectory Recorder</h1>
+
+      <div class="status" id="status">
+        各列から1つずつマスを選択してください (0/15)
+      </div>
+
+      <div class="progress">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
         </div>
-        
-        <div class="progress">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <div id="progressText">0%</div>
+        <div id="progressText">0%</div>
+      </div>
+
+      <div class="grid-container">
+        <div class="start-label">Start</div>
+        <div class="grid" id="grid">
+          <!-- グリッドはJavaScriptで生成 -->
         </div>
-        
-        <div class="grid-container">
-            <div class="grid" id="grid">
-                <!-- グリッドはJavaScriptで生成 -->
-            </div>
+        <div class="end-label">End</div>
+      </div>
+
+      <div class="controls">
+        <div class="filename-section">
+          <label for="filenameInput">ファイル名:</label>
+          <input
+            type="text"
+            id="filenameInput"
+            value="trajectory"
+            placeholder="ファイル名を入力"
+          />
         </div>
-        
-        <div class="controls">
-            <div class="filename-section">
-                <label for="filenameInput">ファイル名:</label>
-                <input type="text" id="filenameInput" value="trajectory" placeholder="ファイル名を入力">
-            </div>
-            <div class="button-section">
-                <button id="downloadBtn" disabled>CSVダウンロード</button>
-                <button id="resetBtn">リセット</button>
-            </div>
+        <div class="button-section">
+          <button id="downloadBtn" disabled>CSVダウンロード</button>
+          <button id="resetBtn">リセット</button>
         </div>
+      </div>
     </div>
 
     <script>
-        class GridSelector {
-            constructor() {
-                this.grid = document.getElementById('grid');
-                this.status = document.getElementById('status');
-                this.progressFill = document.getElementById('progressFill');
-                this.progressText = document.getElementById('progressText');
-                this.downloadBtn = document.getElementById('downloadBtn');
-                this.resetBtn = document.getElementById('resetBtn');
-                this.filenameInput = document.getElementById('filenameInput');
-                
-                this.rows = 3;
-                this.cols = 15;
-                this.selections = new Array(this.cols).fill(null); // 各列の選択状態
-                this.selectedCount = 0;
-                
-                this.initGrid();
-                this.bindEvents();
-            }
-            
-            initGrid() {
-                this.grid.innerHTML = '';
-                
-                for (let row = 0; row < this.rows; row++) {
-                    for (let col = 0; col < this.cols; col++) {
-                        const cell = document.createElement('div');
-                        cell.className = 'cell';
-                        cell.dataset.row = row;
-                        cell.dataset.col = col;
-                        this.grid.appendChild(cell);
-                    }
-                }
-            }
-            
-            bindEvents() {
-                this.grid.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('cell')) {
-                        this.selectCell(e.target);
-                    }
-                });
-                
-                this.downloadBtn.addEventListener('click', () => {
-                    this.downloadCSV();
-                });
-                
-                this.resetBtn.addEventListener('click', () => {
-                    this.reset();
-                });
-            }
-            
-            selectCell(cell) {
-                const row = parseInt(cell.dataset.row);
-                const col = parseInt(cell.dataset.col);
-                
-                // 同じ列の他のマスを選択解除
-                if (this.selections[col] !== null) {
-                    const prevCell = this.grid.children[this.selections[col] * this.cols + col];
-                    prevCell.classList.remove('selected');
-                }
-                
-                // 新しいマスを選択
-                cell.classList.add('selected');
-                this.selections[col] = row;
-                
-                this.updateProgress();
-            }
-            
-            updateProgress() {
-                this.selectedCount = this.selections.filter(selection => selection !== null).length;
-                const percentage = (this.selectedCount / this.cols) * 100;
-                
-                this.status.textContent = `各列から1つずつマスを選択してください (${this.selectedCount}/${this.cols})`;
-                this.progressFill.style.width = `${percentage}%`;
-                this.progressText.textContent = `${Math.round(percentage)}%`;
-                
-                // 全選択完了時の処理
-                if (this.selectedCount === this.cols) {
-                    this.status.textContent = '全ての列で選択が完了しました！';
-                    this.downloadBtn.disabled = false;
-                } else {
-                    this.downloadBtn.disabled = true;
-                }
-            }
-            
-            downloadCSV() {
-                const csvData = [];
-                csvData.push('列,行');
-                
-                for (let col = 0; col < this.cols; col++) {
-                    const row = this.selections[col];
-                    csvData.push(`${col + 1},${row - 1}`);
-                }
-                
-                const csvContent = csvData.join('\n');
-                const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                
-                // ファイル名の処理
-                let filename = this.filenameInput.value.trim();
-                if (!filename) {
-                    filename = 'trajectory';
-                }
-                
-                // -(数字)で終わっていない場合は-1を付加
-                if (!filename.match(/-\d+$/)) {
-                    filename += '-1';
-                }
-                
-                link.setAttribute('href', url);
-                link.setAttribute('download', filename + '.csv');
-                link.style.visibility = 'hidden';
-                
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-            
-            incrementFilename() {
-                let filename = this.filenameInput.value.trim();
-                if (!filename) {
-                    filename = 'trajectory';
-                }
-                
-                // -(数字)で終わっている場合は番号を増加
-                const match = filename.match(/^(.+)-(\d+)$/);
-                if (match) {
-                    const baseName = match[1];
-                    const number = parseInt(match[2]);
-                    this.filenameInput.value = `${baseName}-${number + 1}`;
-                } else {
-                    // -(数字)で終わっていない場合は-2を付加
-                    this.filenameInput.value = `${filename}-2`;
-                }
-            }
-            
-            reset() {
-                this.selections = new Array(this.cols).fill(null);
-                this.selectedCount = 0;
-                
-                // 全てのマスの選択状態を解除
-                const cells = this.grid.querySelectorAll('.cell');
-                cells.forEach(cell => {
-                    cell.classList.remove('selected');
-                });
-                
-                this.updateProgress();
-                
-                // リセット時にファイル名の番号を増加
-                this.incrementFilename();
-            }
+      class GridSelector {
+        constructor() {
+          this.grid = document.getElementById("grid");
+          this.status = document.getElementById("status");
+          this.progressFill = document.getElementById("progressFill");
+          this.progressText = document.getElementById("progressText");
+          this.downloadBtn = document.getElementById("downloadBtn");
+          this.resetBtn = document.getElementById("resetBtn");
+          this.filenameInput = document.getElementById("filenameInput");
+
+          this.rows = 3;
+          this.cols = 15;
+          this.selections = new Array(this.cols).fill(null); // 各列の選択状態
+          this.selectedCount = 0;
+
+          this.initGrid();
+          this.bindEvents();
         }
-        
-        // アプリケーション初期化
-        document.addEventListener('DOMContentLoaded', () => {
-            new GridSelector();
-        });
+
+        initGrid() {
+          this.grid.innerHTML = "";
+
+          for (let row = 0; row < this.rows; row++) {
+            for (let col = 0; col < this.cols; col++) {
+              const cell = document.createElement("div");
+              cell.className = "cell";
+              cell.dataset.row = row;
+              cell.dataset.col = col;
+              this.grid.appendChild(cell);
+            }
+          }
+        }
+
+        bindEvents() {
+          this.grid.addEventListener("click", (e) => {
+            if (e.target.classList.contains("cell")) {
+              this.selectCell(e.target);
+            }
+          });
+
+          this.downloadBtn.addEventListener("click", () => {
+            this.downloadCSV();
+          });
+
+          this.resetBtn.addEventListener("click", () => {
+            this.reset();
+          });
+        }
+
+        selectCell(cell) {
+          const row = parseInt(cell.dataset.row);
+          const col = parseInt(cell.dataset.col);
+
+          // 同じ列の他のマスを選択解除
+          if (this.selections[col] !== null) {
+            const prevCell =
+              this.grid.children[this.selections[col] * this.cols + col];
+            prevCell.classList.remove("selected");
+          }
+
+          // 新しいマスを選択
+          cell.classList.add("selected");
+          this.selections[col] = row;
+
+          this.updateProgress();
+        }
+
+        updateProgress() {
+          this.selectedCount = this.selections.filter(
+            (selection) => selection !== null
+          ).length;
+          const percentage = (this.selectedCount / this.cols) * 100;
+
+          this.status.textContent = `各列から1つずつマスを選択してください (${this.selectedCount}/${this.cols})`;
+          this.progressFill.style.width = `${percentage}%`;
+          this.progressText.textContent = `${Math.round(percentage)}%`;
+
+          // 全選択完了時の処理
+          if (this.selectedCount === this.cols) {
+            this.status.textContent = "全ての列で選択が完了しました！";
+            this.downloadBtn.disabled = false;
+          } else {
+            this.downloadBtn.disabled = true;
+          }
+        }
+
+        downloadCSV() {
+          const csvData = [];
+          csvData.push("列,行");
+
+          for (let col = 0; col < this.cols; col++) {
+            const row = this.selections[col];
+            csvData.push(`${col + 1},${row - 1}`);
+          }
+
+          const csvContent = csvData.join("\n");
+          const blob = new Blob(["\ufeff" + csvContent], {
+            type: "text/csv;charset=utf-8;",
+          });
+          const link = document.createElement("a");
+          const url = URL.createObjectURL(blob);
+
+          // ファイル名の処理
+          let filename = this.filenameInput.value.trim();
+          if (!filename) {
+            filename = "trajectory";
+          }
+
+          // -(数字)で終わっていない場合は-1を付加
+          if (!filename.match(/-\d+$/)) {
+            filename += "-1";
+          }
+
+          link.setAttribute("href", url);
+          link.setAttribute("download", filename + ".csv");
+          link.style.visibility = "hidden";
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+
+        incrementFilename() {
+          let filename = this.filenameInput.value.trim();
+          if (!filename) {
+            filename = "trajectory";
+          }
+
+          // -(数字)で終わっている場合は番号を増加
+          const match = filename.match(/^(.+)-(\d+)$/);
+          if (match) {
+            const baseName = match[1];
+            const number = parseInt(match[2]);
+            this.filenameInput.value = `${baseName}-${number + 1}`;
+          } else {
+            // -(数字)で終わっていない場合は-2を付加
+            this.filenameInput.value = `${filename}-2`;
+          }
+        }
+
+        reset() {
+          this.selections = new Array(this.cols).fill(null);
+          this.selectedCount = 0;
+
+          // 全てのマスの選択状態を解除
+          const cells = this.grid.querySelectorAll(".cell");
+          cells.forEach((cell) => {
+            cell.classList.remove("selected");
+          });
+
+          this.updateProgress();
+
+          // リセット時にファイル名の番号を増加
+          this.incrementFilename();
+        }
+      }
+
+      // アプリケーション初期化
+      document.addEventListener("DOMContentLoaded", () => {
+        new GridSelector();
+      });
     </script>
-</body>
+  </body>
 </html>
